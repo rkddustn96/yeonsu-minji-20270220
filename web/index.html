@@ -315,6 +315,9 @@
   .gallery button { flex: 0 0 92%; padding: 0; border: 0; background: #ece6dd; aspect-ratio: 3 / 2; overflow: hidden; cursor: zoom-in; border-radius: 6px; scroll-snap-align: start; }
   .gallery--portrait button { flex-basis: 72%; aspect-ratio: 2 / 3; }
   .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gallery { cursor: grab; touch-action: pan-x pan-y; }
+  .gallery.is-dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; user-select: none; }
+  .gallery.is-dragging button { cursor: grabbing; }
   .gallery-group + .gallery-group { margin-top: calc(var(--u) * 120); }
   .gallery-controls { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 16px; color: var(--muted); font-size: var(--fs-small); }
   .gallery-controls button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink); font-size: 26px; cursor: pointer; }
@@ -696,7 +699,45 @@
     grid.addEventListener('scroll', () => { if (frame) return; frame = requestAnimationFrame(() => { frame = null; sync(); }); }, { passive: true });
     window.addEventListener('resize', sync);
     sync();
-    grid.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) open(+b.dataset.i, photos, label); });
+    let drag = null, suppressClick = false, suppressTimer;
+    grid.addEventListener('pointerdown', e => {
+      // Touch keeps the browser's native momentum scrolling and vertical page scroll.
+      if (e.pointerType === 'touch' || e.button !== 0) return;
+      clearTimeout(suppressTimer); suppressClick = false;
+      drag = { id: e.pointerId, x: e.clientX, left: grid.scrollLeft, moved: false };
+    });
+    grid.addEventListener('pointermove', e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.moved && Math.abs(dx) < 6) return;
+      if (!drag.moved) {
+        drag.moved = true;
+        grid.setPointerCapture(e.pointerId);
+        grid.classList.add('is-dragging');
+      }
+      e.preventDefault();
+      grid.scrollLeft = drag.left - dx;
+    });
+    function endDrag(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      const moved = drag.moved;
+      drag = null;
+      grid.classList.remove('is-dragging');
+      if (grid.hasPointerCapture(e.pointerId)) grid.releasePointerCapture(e.pointerId);
+      if (!moved) return;
+      suppressClick = true;
+      suppressTimer = setTimeout(() => { suppressClick = false; }, 400);
+      sync(); slide(0);
+    }
+    grid.addEventListener('pointerup', endDrag);
+    grid.addEventListener('pointercancel', endDrag);
+    grid.addEventListener('lostpointercapture', endDrag);
+    grid.addEventListener('pointerleave', e => { if (drag && !drag.moved) drag = null; });
+    grid.addEventListener('click', e => {
+      if (suppressClick) { e.preventDefault(); e.stopPropagation(); return; }
+      const b = e.target.closest('button[data-i]');
+      if (b) open(+b.dataset.i, photos, label);
+    });
     }
 
     const lb = document.getElementById('lightbox'), img = lb.querySelector('.lb-img'), count = lb.querySelector('.lb-count');
