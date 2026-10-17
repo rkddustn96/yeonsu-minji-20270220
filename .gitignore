@@ -1,0 +1,8 @@
+/*
+!/.gitignore
+!/README.md
+!/.github/
+!/scripts/
+!/web/
+__pycache__/
+*.pyc
