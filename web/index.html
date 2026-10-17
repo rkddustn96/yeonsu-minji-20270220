@@ -313,7 +313,6 @@
   .gallery { --slide-size: 84%; display: flex; gap: 12px; margin: 0 calc(var(--u) * -40); overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .gallery::-webkit-scrollbar { display: none; }
   .gallery button { flex: 0 0 var(--slide-size); padding: 0; border: 0; background: #ece6dd; aspect-ratio: 3 / 2; overflow: hidden; cursor: zoom-in; border-radius: 6px; scroll-snap-align: center; }
-  .gallery--portrait { --slide-size: 72%; }
   .gallery--portrait button { aspect-ratio: 2 / 3; }
   .gallery::before, .gallery::after { content: ""; flex: 0 0 calc((100% - var(--slide-size)) / 2 - 12px); }
   .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
