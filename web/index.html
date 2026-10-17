@@ -310,10 +310,12 @@
   .snap img { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
     -webkit-user-drag: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: none; }
 
-  .gallery { display: flex; gap: 12px; margin: 0 calc(var(--u) * -40); overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .gallery { --slide-size: 84%; display: flex; gap: 12px; margin: 0 calc(var(--u) * -40); overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .gallery::-webkit-scrollbar { display: none; }
-  .gallery button { flex: 0 0 92%; padding: 0; border: 0; background: #ece6dd; aspect-ratio: 3 / 2; overflow: hidden; cursor: zoom-in; border-radius: 6px; scroll-snap-align: start; }
-  .gallery--portrait button { flex-basis: 72%; aspect-ratio: 2 / 3; }
+  .gallery button { flex: 0 0 var(--slide-size); padding: 0; border: 0; background: #ece6dd; aspect-ratio: 3 / 2; overflow: hidden; cursor: zoom-in; border-radius: 6px; scroll-snap-align: center; }
+  .gallery--portrait { --slide-size: 72%; }
+  .gallery--portrait button { aspect-ratio: 2 / 3; }
+  .gallery::before, .gallery::after { content: ""; flex: 0 0 calc((100% - var(--slide-size)) / 2 - 12px); }
   .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .gallery { cursor: grab; touch-action: pan-x pan-y; }
   .gallery.is-dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; user-select: none; }
@@ -493,19 +495,19 @@
       </div>
     </figure>
     <div class="gallery-group">
-      <div class="gallery gallery--landscape" id="gallery-landscape"></div>
-      <div class="gallery-controls">
-        <button type="button" data-slide="prev" aria-label="가로 사진 이전 슬라이드">‹</button>
-        <span class="gallery-position" aria-live="polite">1 / 0</span>
-        <button type="button" data-slide="next" aria-label="가로 사진 다음 슬라이드">›</button>
-      </div>
-    </div>
-    <div class="gallery-group">
       <div class="gallery gallery--portrait" id="gallery-portrait"></div>
       <div class="gallery-controls">
         <button type="button" data-slide="prev" aria-label="세로 사진 이전 슬라이드">‹</button>
         <span class="gallery-position" aria-live="polite">1 / 0</span>
         <button type="button" data-slide="next" aria-label="세로 사진 다음 슬라이드">›</button>
+      </div>
+    </div>
+    <div class="gallery-group">
+      <div class="gallery gallery--landscape" id="gallery-landscape"></div>
+      <div class="gallery-controls">
+        <button type="button" data-slide="prev" aria-label="가로 사진 이전 슬라이드">‹</button>
+        <span class="gallery-position" aria-live="polite">1 / 0</span>
+        <button type="button" data-slide="next" aria-label="가로 사진 다음 슬라이드">›</button>
       </div>
     </div>
   </section>
@@ -675,7 +677,7 @@
   (function () {
     const GALLERIES = {"landscape": ["final-011", "final-018", "final-030", "final-032", "final-033", "final-034", "final-035", "final-036", "final-037"], "portrait": ["final-001", "final-002", "final-003", "final-004", "final-005", "final-006", "final-007", "final-008", "final-009", "final-010", "final-012", "final-013", "final-014", "final-015", "final-016", "final-017", "final-019", "final-020", "final-021", "final-022", "final-023", "final-024", "final-025", "final-026", "final-027", "final-028", "final-029", "final-031", "final-038", "final-039", "final-040", "final-041"]};
     let PHOTOS = [], groupLabel = '';
-    for (const [kind, label] of [['landscape', '가로 사진'], ['portrait', '세로 사진']]) {
+    for (const [kind, label] of [['portrait', '세로 사진'], ['landscape', '가로 사진']]) {
     const photos = GALLERIES[kind];
     const grid = document.getElementById('gallery-' + kind), group = grid.parentElement;
     const width = kind === 'landscape' ? 600 : 360, height = kind === 'landscape' ? 400 : 540;
