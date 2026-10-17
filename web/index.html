@@ -139,6 +139,8 @@
   /* couple a bit smaller (1.08 → 1.02) scaled around head height (≈51.6% of the image) so the heads stay put;
      nudged left for optical centring, then 5px back to the right */
   .duo .couple { scale: 1.02; transform-origin: 50% 51.6%; translate: calc(-1.75% + 5px) calc(-1 * var(--extra)); }
+  /* Trigger at the couple's head level, below the photo's transparent sky. */
+  .couple-trigger { position: absolute; left: 50%; bottom: calc(var(--u) * 800); width: 1px; height: 1px; pointer-events: none; }
   .duo .head { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 1535 - 30px - var(--raise)); z-index: 2; } /* treetops sit at 765/2300; heading ends 30px below them (over the treetops) */
   .duo .head .orn { margin-bottom: calc(var(--u) * 60); filter: drop-shadow(0 0 3px rgba(250,246,240,.9)); opacity: .7; }
   /* soft cream halo so the dark text stays legible where it overlaps the treetops */
@@ -403,6 +405,7 @@
     <div class="duo">
       <img class="bg" src="img/cal-bg.jpg" alt="" width="1080" height="1667" loading="lazy">
       <img class="couple reveal" src="img/cal-couple.webp" alt="마주 보며 웃는 신랑 신부" width="1080" height="1667" loading="lazy">
+      <span class="couple-trigger" aria-hidden="true"></span>
       <div class="head reveal">
         <img class="orn" src="img/ornament.png" alt="">
         <h2 class="title">수원 호텔 라뷔포레</h2>
@@ -715,7 +718,17 @@
 
   // Scroll reveal
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } }), { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  document.querySelectorAll('.reveal:not(.couple)').forEach(el => io.observe(el));
+  // Start once the people reach the lower 85% of the viewport, not when the
+  // large image's transparent upper area first intersects the screen.
+  const coupleIO = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      document.querySelector('.duo .couple').classList.add('on');
+      coupleIO.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -15% 0px', threshold: 0 });
+  coupleIO.observe(document.querySelector('.couple-trigger'));
 
   // BGM: try to start as soon as the page opens; if the browser blocks autoplay, start on the first tap anywhere
   // (unless the guest turned it off);
