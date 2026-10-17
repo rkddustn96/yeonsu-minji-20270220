@@ -13,12 +13,13 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="811">
 <meta name="theme-color" content="#faf6f0">
-<link rel="preload" href="fonts/GangwonEdu-Light.woff" as="font" type="font/woff" crossorigin>
-<link rel="preload" href="fonts/GangwonEdu-Bold.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="fonts/GangwonEdu-Opening.woff2" as="font" type="font/woff2" crossorigin>
+<script>document.documentElement.classList.add('opening-font-pending');</script>
 
 <style>
-  @font-face { font-family: "GangwonEdu"; font-weight: 300; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Light.woff") format("woff"); }
-  @font-face { font-family: "GangwonEdu"; font-weight: 700; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Bold.woff") format("woff"); }
+  @font-face { font-family: "GangwonEduOpening"; font-weight: 300; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Opening.woff2") format("woff2"); }
+  @font-face { font-family: "GangwonEdu"; font-weight: 300; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Light.woff2") format("woff2"), url("fonts/GangwonEdu-Light.woff") format("woff"); }
+  @font-face { font-family: "GangwonEdu"; font-weight: 700; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Bold.woff2") format("woff2"), url("fonts/GangwonEdu-Bold.woff") format("woff"); }
 
   :root {
     /* palette — warm cream + sage, no pure black/white */
@@ -68,10 +69,13 @@
   }
   .hero .orn { position: absolute; left: 50%; margin: 0; transform: translateX(-50%); }
   .hero .poem {
+    font-family: "GangwonEduOpening", "GangwonEdu", sans-serif;
+    min-height: 9em; opacity: 1; transition: opacity .65s ease;
     position: absolute; left: 0; right: 0; top: calc(var(--u) * 585);
     text-align: center; font-size: calc(var(--u) * 44); line-height: 1.8; color: var(--ink);
   }
   .hero .poem p + p { margin-top: 1.8em; }
+  html.opening-font-pending .hero .poem { opacity: 0; transition: none; }
   .hero .names {
     position: absolute; left: 0; right: 0; top: calc(var(--u) * 3740 - 30px);
     text-align: center; color: var(--on-dark);
@@ -509,6 +513,21 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // Only the opening text waits for its small font subset; the page stays visible.
+  (function () {
+    let finished = false;
+    const show = function () {
+      if (finished) return;
+      finished = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.documentElement.classList.remove('opening-font-pending');
+      }));
+    };
+    const timeout = setTimeout(show, 4000);
+    if (!document.fonts || !document.fonts.load) { show(); return; }
+    document.fonts.load('300 1em GangwonEduOpening', document.querySelector('.poem').textContent)
+      .then(() => { clearTimeout(timeout); show(); }, () => { clearTimeout(timeout); show(); });
+  })();
   const WEDDING = new Date(2027, 1, 20, 18, 0);
 
   // 네이버 지도 (NAVER Cloud Platform > Maps > Application 의 Client ID).
