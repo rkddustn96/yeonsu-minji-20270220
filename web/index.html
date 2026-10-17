@@ -310,26 +310,16 @@
   .snap img { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
     -webkit-user-drag: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: none; }
 
-  .gallery {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 10); margin: 0 calc(var(--u) * -40);
-    align-content: start; grid-auto-rows: max-content; /* rows keep their size while the height animates (clip, don't squash) */
-  }
-  .gallery button { padding: 0; border: 0; background: #ece6dd; aspect-ratio: 1 / 1; overflow: hidden; cursor: zoom-in; border-radius: 4px; }
-  .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .4s ease; }
-  .gallery button:active img { scale: .97; }
-  .gallery button.hidden { display: none; }
-  .gallery--landscape { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .gallery--landscape button { aspect-ratio: 3 / 2; }
-  .gallery--portrait button { aspect-ratio: 2 / 3; }
-  .gallery-group + .gallery-group { margin-top: calc(var(--u) * 130); }
-  .gallery-heading { font-size: var(--fs-body); font-weight: 300; color: var(--muted); margin-bottom: calc(var(--u) * 36); }
-  .g-more {
-    display: flex; align-items: center; justify-content: center; margin: calc(var(--u) * 40) auto 0;
-    width: max(44px, calc(var(--u) * 120)); height: max(44px, calc(var(--u) * 120)); border-radius: 50%;
-    background: var(--surface); border: 1px solid var(--line); cursor: pointer;
-  }
-  .g-more svg { width: 50%; height: 50%; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .g-more.open svg { rotate: 180deg; }
+  .gallery { display: flex; gap: 12px; margin: 0 calc(var(--u) * -40); overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .gallery::-webkit-scrollbar { display: none; }
+  .gallery button { flex: 0 0 92%; padding: 0; border: 0; background: #ece6dd; aspect-ratio: 3 / 2; overflow: hidden; cursor: zoom-in; border-radius: 6px; scroll-snap-align: start; }
+  .gallery--portrait button { flex-basis: 72%; aspect-ratio: 2 / 3; }
+  .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gallery-group + .gallery-group { margin-top: calc(var(--u) * 120); }
+  .gallery-controls { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 16px; color: var(--muted); font-size: var(--fs-small); }
+  .gallery-controls button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink); font-size: 26px; cursor: pointer; }
+  .gallery-controls button:disabled { opacity: .3; cursor: default; }
+  @media (prefers-reduced-motion: reduce) { .gallery { scroll-behavior: auto; } }
   .lightbox {
     position: fixed; inset: 0; z-index: 50; background: rgba(var(--shade), .97);
     display: flex; align-items: center; justify-content: center; touch-action: pan-y;
@@ -500,14 +490,20 @@
       </div>
     </figure>
     <div class="gallery-group">
-      <h3 class="gallery-heading">가로 사진</h3>
       <div class="gallery gallery--landscape" id="gallery-landscape"></div>
-      <button class="g-more" id="more-landscape" type="button" aria-label="가로 사진 더 보기" aria-expanded="false" aria-controls="gallery-landscape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="gallery-controls">
+        <button type="button" data-slide="prev" aria-label="가로 사진 이전 슬라이드">‹</button>
+        <span class="gallery-position" aria-live="polite">1 / 0</span>
+        <button type="button" data-slide="next" aria-label="가로 사진 다음 슬라이드">›</button>
+      </div>
     </div>
     <div class="gallery-group">
-      <h3 class="gallery-heading">세로 사진</h3>
       <div class="gallery gallery--portrait" id="gallery-portrait"></div>
-      <button class="g-more" id="more-portrait" type="button" aria-label="세로 사진 더 보기" aria-expanded="false" aria-controls="gallery-portrait"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="gallery-controls">
+        <button type="button" data-slide="prev" aria-label="세로 사진 이전 슬라이드">‹</button>
+        <span class="gallery-position" aria-live="polite">1 / 0</span>
+        <button type="button" data-slide="next" aria-label="세로 사진 다음 슬라이드">›</button>
+      </div>
     </div>
   </section>
   <div class="lightbox" id="lightbox" hidden>
@@ -633,7 +629,12 @@
     }
   }
   document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
-    await copy(b.dataset.copy); showToast('복사되었습니다: ' + b.dataset.copy);
+    let value = b.dataset.copy;
+    if (b.closest('.acc')) {
+      const account = value.match(/^(.+?)\s+([\d\s-]+)$/);
+      if (account) value = account[1] + ' ' + account[2].replace(/\D/g, '');
+    }
+    await copy(value); showToast('복사되었습니다: ' + value);
   }));
   document.getElementById('share').addEventListener('click', async () => {
     if (navigator.share) { try { await navigator.share({ title: document.title, url: location.href }); return; } catch (e) {} }
@@ -672,42 +673,29 @@
     const GALLERIES = {"landscape": ["final-011", "final-018", "final-030", "final-032", "final-033", "final-034", "final-035", "final-036", "final-037"], "portrait": ["final-001", "final-002", "final-003", "final-004", "final-005", "final-006", "final-007", "final-008", "final-009", "final-010", "final-012", "final-013", "final-014", "final-015", "final-016", "final-017", "final-019", "final-020", "final-021", "final-022", "final-023", "final-024", "final-025", "final-026", "final-027", "final-028", "final-029", "final-031", "final-038", "final-039", "final-040", "final-041"]};
     let PHOTOS = [], groupLabel = '';
     for (const [kind, label] of [['landscape', '가로 사진'], ['portrait', '세로 사진']]) {
-    const photos = GALLERIES[kind], FIRST = 6;
-    const grid = document.getElementById('gallery-' + kind), more = document.getElementById('more-' + kind);
+    const photos = GALLERIES[kind];
+    const grid = document.getElementById('gallery-' + kind), group = grid.parentElement;
     const width = kind === 'landscape' ? 600 : 360, height = kind === 'landscape' ? 400 : 540;
     grid.innerHTML = photos.map((n, i) =>
-      '<button type="button" data-i="' + i + '"' + (i >= FIRST ? ' class="hidden"' : '') + ' aria-label="' + label + ' ' + (i + 1) + ' 크게 보기">' +
+      '<button type="button" data-i="' + i + '" aria-label="' + label + ' ' + (i + 1) + ' 크게 보기">' +
       '<img src="img/gallery-final/t/' + n + '.webp" alt="" loading="lazy" decoding="async" width="' + width + '" height="' + height + '"></button>').join('');
-    more.hidden = photos.length <= FIRST;
-    const extras = () => [...grid.querySelectorAll('button')].slice(FIRST);
-    let gAnim = null;
-    more.addEventListener('click', () => {
-      const open = more.classList.toggle('open');
-      more.setAttribute('aria-label', label + (open ? ' 접기' : ' 더 보기'));
-      more.setAttribute('aria-expanded', String(open));
-      const currentHeight = grid.getBoundingClientRect().height;
-      if (gAnim) { gAnim.onfinish = null; gAnim.cancel(); }
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const start = currentHeight;
-      extras().forEach((b) => b.classList.toggle('hidden', !open));   // measure the target height
-      const end = grid.offsetHeight;
-      if (reduce) { grid.style.overflow = ''; if (!open) grid.scrollIntoView({ block: 'start' }); return; }
-      if (!open) {                                                       // keep them visible while shrinking
-        extras().forEach((b) => b.classList.remove('hidden'));
-        grid.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      }
-      grid.style.overflow = 'hidden';
-      gAnim = grid.animate({ height: [start + 'px', end + 'px'] },
-        { duration: Math.min(2000, 850 + Math.abs(end - start) / 8), easing: 'cubic-bezier(.25,.1,.25,1)' });
-      if (open) extras().forEach((b, i) => b.animate(
-        { opacity: [0, 1], transform: ['translateY(12px)', 'translateY(0)'] },
-        { duration: 650, delay: Math.min(Math.floor(i / 3) * 70, 700), fill: 'backwards', easing: 'ease-out' }));
-      gAnim.onfinish = () => {
-        if (!open) extras().forEach((b) => b.classList.add('hidden'));
-        grid.style.overflow = ''; gAnim = null;
-      };
-    });
-
+    const items = [...grid.querySelectorAll('button')];
+    const prev = group.querySelector('[data-slide="prev"]'), next = group.querySelector('[data-slide="next"]'), position = group.querySelector('.gallery-position');
+    let current = 0, frame = null;
+    function sync() {
+      const step = items.length > 1 ? items[1].offsetLeft - items[0].offsetLeft : 1;
+      current = Math.max(0, Math.min(photos.length - 1, Math.round(grid.scrollLeft / step)));
+      position.textContent = (current + 1) + ' / ' + photos.length;
+      prev.disabled = current === 0; next.disabled = current === photos.length - 1;
+    }
+    function slide(delta) {
+      current = Math.max(0, Math.min(photos.length - 1, current + delta));
+      grid.scrollTo({ left: items[current].offsetLeft - items[0].offsetLeft, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+    prev.addEventListener('click', () => slide(-1)); next.addEventListener('click', () => slide(1));
+    grid.addEventListener('scroll', () => { if (frame) return; frame = requestAnimationFrame(() => { frame = null; sync(); }); }, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
     grid.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) open(+b.dataset.i, photos, label); });
     }
 
@@ -717,7 +705,7 @@
     function show(i) {
       cur = (i + PHOTOS.length) % PHOTOS.length;
       img.src = 'img/gallery-final/f/' + PHOTOS[cur] + '.webp';
-      count.textContent = groupLabel + ' · ' + (cur + 1) + ' / ' + PHOTOS.length;
+      count.textContent = (cur + 1) + ' / ' + PHOTOS.length;
       img.alt = groupLabel + ' ' + (cur + 1);
       preload(cur + 1); preload(cur - 1);
     }
