@@ -70,7 +70,7 @@
   .hero .orn { position: absolute; left: 50%; margin: 0; transform: translateX(-50%); }
   .hero .poem {
     font-family: "GangwonEduOpening", "GangwonEdu", sans-serif;
-    min-height: 9em; opacity: 1; transition: opacity .65s ease;
+    min-height: 9em; opacity: 1; transition: opacity 1.2s ease;
     position: absolute; left: 0; right: 0; top: calc(var(--u) * 585);
     text-align: center; font-size: calc(var(--u) * 44); line-height: 1.8; color: var(--ink);
   }
@@ -519,9 +519,9 @@
     const show = function () {
       if (finished) return;
       finished = true;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => {
         document.documentElement.classList.remove('opening-font-pending');
-      }));
+      })), 500);
     };
     const timeout = setTimeout(show, 4000);
     if (!document.fonts || !document.fonts.load) { show(); return; }
