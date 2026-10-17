@@ -15,22 +15,10 @@
 <meta name="theme-color" content="#faf6f0">
 <link rel="preload" href="fonts/GangwonEdu-Light.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="fonts/GangwonEdu-Bold.woff" as="font" type="font/woff" crossorigin>
-<script>
-  /* hold the page until GangwonEdu is in, so text never flashes in a fallback font (max 3s) */
-  document.documentElement.classList.add('fl');
-  (function () {
-    var done = function () { document.documentElement.classList.remove('fl'); };
-    setTimeout(done, 3000);
-    if (document.fonts && document.fonts.load) {
-      Promise.all([document.fonts.load('300 1em GangwonEdu'), document.fonts.load('700 1em GangwonEdu')]).then(done, done);
-    } else done();
-  })();
-</script>
+
 <style>
-  html.fl body { opacity: 0; }
-  body { transition: opacity .35s ease; }
-  @font-face { font-family: "GangwonEdu"; font-weight: 300; font-display: block; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Light.woff") format("woff"); }
-  @font-face { font-family: "GangwonEdu"; font-weight: 700; font-display: block; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Bold.woff") format("woff"); }
+  @font-face { font-family: "GangwonEdu"; font-weight: 300; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Light.woff") format("woff"); }
+  @font-face { font-family: "GangwonEdu"; font-weight: 700; font-display: swap; ascent-override: 86%; descent-override: 14%; src: url("fonts/GangwonEdu-Bold.woff") format("woff"); }
 
   :root {
     /* palette — warm cream + sage, no pure black/white */
@@ -390,7 +378,7 @@
   <header class="hero" id="hero">
     <img class="orn" src="img/ornament.png" alt="" style="top: calc(var(--u) * 480)">
     <img class="orn" src="img/ornament.png" alt="" style="top: calc(var(--u) * 1061)">
-    <div class="poem reveal">
+    <div class="poem">
       <p>함께한 7번의 계절,<br>서로의 평생이 되기로 했습니다.</p>
       <p>두 사람의 새로운 시작에<br>소중한 발걸음으로 함께해 주세요.</p>
     </div>
