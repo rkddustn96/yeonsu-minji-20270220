@@ -318,6 +318,11 @@
   .gallery img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .4s ease; }
   .gallery button:active img { scale: .97; }
   .gallery button.hidden { display: none; }
+  .gallery--landscape { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gallery--landscape button { aspect-ratio: 3 / 2; }
+  .gallery--portrait button { aspect-ratio: 2 / 3; }
+  .gallery-group + .gallery-group { margin-top: calc(var(--u) * 130); }
+  .gallery-heading { font-size: var(--fs-body); font-weight: 300; color: var(--muted); margin-bottom: calc(var(--u) * 36); }
   .g-more {
     display: flex; align-items: center; justify-content: center; margin: calc(var(--u) * 40) auto 0;
     width: max(44px, calc(var(--u) * 120)); height: max(44px, calc(var(--u) * 120)); border-radius: 50%;
@@ -494,8 +499,16 @@
         <img class="boil" src="img/frame-boil.webp" alt="" loading="lazy" decoding="async">
       </div>
     </figure>
-    <div class="gallery" id="gallery"></div>
-    <button class="g-more" id="gMore" type="button" aria-label="사진 더 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="gallery-group">
+      <h3 class="gallery-heading">가로 사진</h3>
+      <div class="gallery gallery--landscape" id="gallery-landscape"></div>
+      <button class="g-more" id="more-landscape" type="button" aria-label="가로 사진 더 보기" aria-expanded="false" aria-controls="gallery-landscape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+    <div class="gallery-group">
+      <h3 class="gallery-heading">세로 사진</h3>
+      <div class="gallery gallery--portrait" id="gallery-portrait"></div>
+      <button class="g-more" id="more-portrait" type="button" aria-label="세로 사진 더 보기" aria-expanded="false" aria-controls="gallery-portrait"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
   </section>
   <div class="lightbox" id="lightbox" hidden>
     <button class="lb-close" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -656,18 +669,22 @@
 
   // Gallery: 3-column thumbs (first 12, chevron reveals the rest) + full-screen viewer with swipe
   (function () {
-    const PHOTOS = '0011,0184,0315,0395,0440,0518,0548,0659,0672,0728,0745,0828,0861,0877,0950,0994,1003,1005,1010,1058,1109,1146,1177,1267,1272,1274,1300,1321,1376,1388,1421,1464,1488,1580,1594,1604,1655,1675,1698,1700,1704,1738,1758,1798,1817,1820,1826,1830,1877,1879,1881,1885,1893,1896,1902,1904,1913,1919,1927,1939,1957,1959,1984,1997,2090,2101,2115,2164,2181,2206,2232,2246,2267,2281,2343,2349,2365,2389,2400,2409,2426,2434,2478,2522,2552,2583,2609,2796,2811,2812,2861,2869,2892,2952,3513'
-      .split(',').slice(0, 30).map(n => 'mmm_' + n);
-    const FIRST = 12;
-    const grid = document.getElementById('gallery'), more = document.getElementById('gMore');
-    grid.innerHTML = PHOTOS.map((n, i) =>
-      '<button type="button" data-i="' + i + '"' + (i >= FIRST ? ' class="hidden"' : '') + ' aria-label="사진 ' + (i + 1) + ' 크게 보기">' +
-      '<img src="img/gallery/t/' + n + '.webp" alt="" loading="lazy" decoding="async" width="360" height="360"></button>').join('');
+    const GALLERIES = {"landscape": ["final-011", "final-018", "final-030", "final-032", "final-033", "final-034", "final-035", "final-036", "final-037"], "portrait": ["final-001", "final-002", "final-003", "final-004", "final-005", "final-006", "final-007", "final-008", "final-009", "final-010", "final-012", "final-013", "final-014", "final-015", "final-016", "final-017", "final-019", "final-020", "final-021", "final-022", "final-023", "final-024", "final-025", "final-026", "final-027", "final-028", "final-029", "final-031", "final-038", "final-039", "final-040", "final-041"]};
+    let PHOTOS = [], groupLabel = '';
+    for (const [kind, label] of [['landscape', '가로 사진'], ['portrait', '세로 사진']]) {
+    const photos = GALLERIES[kind], FIRST = 6;
+    const grid = document.getElementById('gallery-' + kind), more = document.getElementById('more-' + kind);
+    const width = kind === 'landscape' ? 600 : 360, height = kind === 'landscape' ? 400 : 540;
+    grid.innerHTML = photos.map((n, i) =>
+      '<button type="button" data-i="' + i + '"' + (i >= FIRST ? ' class="hidden"' : '') + ' aria-label="' + label + ' ' + (i + 1) + ' 크게 보기">' +
+      '<img src="img/gallery-final/t/' + n + '.webp" alt="" loading="lazy" decoding="async" width="' + width + '" height="' + height + '"></button>').join('');
+    more.hidden = photos.length <= FIRST;
     const extras = () => [...grid.querySelectorAll('button')].slice(FIRST);
     let gAnim = null;
     more.addEventListener('click', () => {
       const open = more.classList.toggle('open');
-      more.setAttribute('aria-label', open ? '사진 접기' : '사진 더 보기');
+      more.setAttribute('aria-label', label + (open ? ' 접기' : ' 더 보기'));
+      more.setAttribute('aria-expanded', String(open));
       const currentHeight = grid.getBoundingClientRect().height;
       if (gAnim) { gAnim.onfinish = null; gAnim.cancel(); }
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -691,23 +708,27 @@
       };
     });
 
+    grid.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) open(+b.dataset.i, photos, label); });
+    }
+
     const lb = document.getElementById('lightbox'), img = lb.querySelector('.lb-img'), count = lb.querySelector('.lb-count');
     let cur = 0;
-    const preload = (i) => { const p = new Image(); p.src = 'img/gallery/f/' + PHOTOS[(i + PHOTOS.length) % PHOTOS.length] + '.webp'; };
+    const preload = (i) => { const p = new Image(); p.src = 'img/gallery-final/f/' + PHOTOS[(i + PHOTOS.length) % PHOTOS.length] + '.webp'; };
     function show(i) {
       cur = (i + PHOTOS.length) % PHOTOS.length;
-      img.src = 'img/gallery/f/' + PHOTOS[cur] + '.webp';
-      count.textContent = (cur + 1) + ' / ' + PHOTOS.length;
+      img.src = 'img/gallery-final/f/' + PHOTOS[cur] + '.webp';
+      count.textContent = groupLabel + ' · ' + (cur + 1) + ' / ' + PHOTOS.length;
+      img.alt = groupLabel + ' ' + (cur + 1);
       preload(cur + 1); preload(cur - 1);
     }
-    function open(i) {
+    function open(i, photos, label) {
+      PHOTOS = photos; groupLabel = label;
       show(i); lb.hidden = false; document.body.style.overflow = 'hidden';
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       lb.animate({ opacity: [0, 1] }, { duration: reduce ? 180 : 350, easing: 'ease-out' });
       if (!reduce) img.animate({ transform: ['scale(.97)', 'scale(1)'] }, { duration: 400, easing: 'ease-out' });
     }
     function close() { lb.hidden = true; document.body.style.overflow = ''; }
-    grid.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) open(+b.dataset.i); });
     lb.querySelector('.lb-prev').addEventListener('click', (e) => { e.stopPropagation(); show(cur - 1); });
     lb.querySelector('.lb-next').addEventListener('click', (e) => { e.stopPropagation(); show(cur + 1); });
     lb.querySelector('.lb-close').addEventListener('click', close);
@@ -726,10 +747,11 @@
   })();
 
   // Discourage saving photos: block the context menu / drag on the photo areas (hero, couple photo, gallery, viewer)
-  ['.hero', '.duo', '.snap', '#gallery', '#lightbox'].forEach((sel) => {
-    const el = document.querySelector(sel); if (!el) return;
+  ['.hero', '.duo', '.snap', '.gallery', '#lightbox'].forEach((sel) => {
+    document.querySelectorAll(sel).forEach(el => {
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     el.addEventListener('dragstart', (e) => e.preventDefault());
+    });
   });
 
   // Scroll reveal
