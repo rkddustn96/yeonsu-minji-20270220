@@ -375,7 +375,7 @@
   <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
   <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/><path d="M3 3l18 18"/></svg>
 </button>
-<audio id="bgmAudio" src="audio/borderless.mp3" loop preload="none"></audio>
+<audio id="bgmAudio" data-src="audio/borderless.mp3" loop preload="none"></audio>
 <main class="page">
 
   <!-- 포스터 인트로 -->
@@ -657,7 +657,7 @@
   // Gallery: 3-column thumbs (first 12, chevron reveals the rest) + full-screen viewer with swipe
   (function () {
     const PHOTOS = '0011,0184,0315,0395,0440,0518,0548,0659,0672,0728,0745,0828,0861,0877,0950,0994,1003,1005,1010,1058,1109,1146,1177,1267,1272,1274,1300,1321,1376,1388,1421,1464,1488,1580,1594,1604,1655,1675,1698,1700,1704,1738,1758,1798,1817,1820,1826,1830,1877,1879,1881,1885,1893,1896,1902,1904,1913,1919,1927,1939,1957,1959,1984,1997,2090,2101,2115,2164,2181,2206,2232,2246,2267,2281,2343,2349,2365,2389,2400,2409,2426,2434,2478,2522,2552,2583,2609,2796,2811,2812,2861,2869,2892,2952,3513'
-      .split(',').map(n => 'mmm_' + n);
+      .split(',').slice(0, 30).map(n => 'mmm_' + n);
     const FIRST = 12;
     const grid = document.getElementById('gallery'), more = document.getElementById('gMore');
     grid.innerHTML = PHOTOS.map((n, i) =>
@@ -765,15 +765,18 @@
     const ui = (on) => { btn.setAttribute('aria-pressed', on); btn.setAttribute('aria-label', on ? '배경음악 끄기' : '배경음악 켜기'); };
     // BGM is ON by default. If the browser blocks autoplay, it stays "on" (icon too) and actually starts at the
     // guest's first touch/click/key anywhere — browsers only allow sound after such a gesture.
-    let blocked = false;
+    let blocked = false, ready = false;
     const play = () => {
-      wanted = true; ui(true); audio.volume = 0;
+      wanted = true; ui(true);
+      if (!ready) { blocked = true; return; }
+      if (!audio.getAttribute('src')) audio.src = audio.dataset.src;
+      audio.volume = 0;
       const p = audio.play();
       if (!p) { blocked = false; fade(VOL); return; }
       p.then(() => { blocked = false; fade(VOL); }, () => { blocked = true; });
     };
     const stop = () => { wanted = false; blocked = false; ui(false); fade(0, () => audio.pause()); };
-    btn.addEventListener('click', () => { userChose = true; (wanted && !blocked) ? stop() : play(); });
+    btn.addEventListener('click', () => { userChose = true; wanted ? stop() : play(); });
     const GESTURES = ['pointerup', 'touchend', 'click', 'keydown'];
     const kick = (e) => {
       if (btn.contains(e.target)) return;
@@ -781,9 +784,19 @@
       if (!wanted || !blocked) GESTURES.forEach((t) => removeEventListener(t, kick, true));
     };
     GESTURES.forEach((t) => addEventListener(t, kick, true));
-    play();
+    play(); // Set intent and button state without starting a download.
+    const deferMusic = () => {
+      const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
+      Promise.race([fontsReady, new Promise(resolve => setTimeout(resolve, 2000))])
+        .then(() => setTimeout(() => {
+          ready = true;
+          if (wanted && !document.hidden) play();
+        }, 1500));
+    };
+    if (document.readyState === 'complete') deferMusic();
+    else window.addEventListener('load', deferMusic, { once: true });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) audio.pause(); else if (wanted) audio.play().catch(() => {});
+      if (document.hidden) audio.pause(); else if (wanted) play();
     });
   })();
 </script>
