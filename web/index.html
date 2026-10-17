@@ -93,7 +93,7 @@
   section.block { padding: calc(var(--u) * 240) calc(var(--u) * 70) 0; text-align: center; }
   section.cal-sec { padding-top: 0; } /* no empty band: the photo's sky starts right where the hero fades out */
   section.block:last-of-type { padding-bottom: calc(var(--u) * 120); }
-  .orn { display: block; width: calc(var(--u) * 200); margin: 0 auto calc(var(--u) * 72); opacity: .5; }  .title { font-weight: 700; color: var(--ink-strong); font-size: var(--fs-title); line-height: 1.4; }
+  .orn { display: block; height: auto; width: calc(var(--u) * 200); margin: 0 auto calc(var(--u) * 72); opacity: .5; }  .title { font-weight: 700; color: var(--ink-strong); font-size: var(--fs-title); line-height: 1.4; }
   .sub { font-size: var(--fs-body); color: var(--ink); margin-top: calc(var(--u) * 28); }
   .reveal {
     opacity: 0; transform: translateY(24px);
@@ -351,7 +351,7 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { transform: none; transition: opacity .45s ease; } }
 
   /* BGM toggle: top-right corner of the 480px column */
   .bgm {
@@ -376,8 +376,8 @@
 
   <!-- 포스터 인트로 -->
   <header class="hero" id="hero">
-    <img class="orn" src="img/ornament.png" alt="" style="top: calc(var(--u) * 480)">
-    <img class="orn" src="img/ornament.png" alt="" style="top: calc(var(--u) * 1061)">
+    <img class="orn" src="img/ornament.png" width="720" height="90" alt="" style="top: calc(var(--u) * 480)">
+    <img class="orn" src="img/ornament.png" width="720" height="90" alt="" style="top: calc(var(--u) * 1061)">
     <div class="poem">
       <p>함께한 7번의 계절,<br>서로의 평생이 되기로 했습니다.</p>
       <p>두 사람의 새로운 시작에<br>소중한 발걸음으로 함께해 주세요.</p>
@@ -395,7 +395,7 @@
       <img class="couple reveal" src="img/cal-couple.webp" alt="마주 보며 웃는 신랑 신부" width="1080" height="1667" loading="lazy">
       <span class="couple-trigger" aria-hidden="true"></span>
       <div class="head reveal">
-        <img class="orn" src="img/ornament.png" alt="">
+        <img class="orn" src="img/ornament.png" width="720" height="90" alt="">
         <h2 class="title">수원 호텔 라뷔포레</h2>
         <p class="sub">2027년 2월 20일 토요일 오후 6시</p>
       </div>
@@ -410,7 +410,7 @@
 
   <!-- 지도 -->
   <section class="block">
-    <img class="orn" src="img/ornament.png" alt="">
+    <img class="orn" src="img/ornament.png" width="720" height="90" alt="">
     <h2 class="title reveal">오시는 길</h2>
     <p class="addr reveal"><span><b>주소</b>경기 수원시 팔달구 권광로134번길 44-11<button class="copy icon" data-copy="경기 수원시 팔달구 권광로134번길 44-11" aria-label="주소 복사"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg></button></span></p>
     <div class="map reveal" id="map">
@@ -459,8 +459,8 @@
 
   <!-- 마음을 전하실 곳 -->
   <section class="block">
-    <img class="orn" src="img/ornament.png" alt="">
-    <h2 class="title reveal"><img class="dove flip" src="img/dove.png" alt="">마음을 전하실 곳<img class="dove" src="img/dove.png" alt=""></h2>
+    <img class="orn" src="img/ornament.png" width="720" height="90" alt="">
+    <h2 class="title reveal"><img class="dove flip" src="img/dove.png" width="120" height="91" alt="">마음을 전하실 곳<img class="dove" src="img/dove.png" width="120" height="91" alt=""></h2>
     <p class="acc-note reveal">직접 오시지 못하는 분들을 위한 안내입니다.<br>보내주시는 따뜻한 마음에 깊이 감사드립니다.</p>
     <div class="accs reveal">
       <details class="acc">
@@ -483,7 +483,7 @@
 
   <!-- 갤러리 -->
   <section class="block gallery-sec" aria-label="사진 갤러리">
-    <img class="orn" src="img/ornament.png" alt="">
+    <img class="orn" src="img/ornament.png" width="720" height="90" alt="">
     <figure class="snap" aria-label="Beginning of Always!">
       <div class="snap-in">
         <img src="img/always.webp" alt="" loading="lazy" decoding="async">
@@ -649,19 +649,23 @@
     more.addEventListener('click', () => {
       const open = more.classList.toggle('open');
       more.setAttribute('aria-label', open ? '사진 접기' : '사진 더 보기');
-      if (gAnim) gAnim.cancel();
+      const currentHeight = grid.getBoundingClientRect().height;
+      if (gAnim) { gAnim.onfinish = null; gAnim.cancel(); }
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const start = grid.offsetHeight;
+      const start = currentHeight;
       extras().forEach((b) => b.classList.toggle('hidden', !open));   // measure the target height
       const end = grid.offsetHeight;
-      if (reduce) { if (!open) grid.scrollIntoView({ block: 'start' }); return; }
+      if (reduce) { grid.style.overflow = ''; if (!open) grid.scrollIntoView({ block: 'start' }); return; }
       if (!open) {                                                       // keep them visible while shrinking
         extras().forEach((b) => b.classList.remove('hidden'));
         grid.scrollIntoView({ block: 'start', behavior: 'smooth' });
       }
       grid.style.overflow = 'hidden';
       gAnim = grid.animate({ height: [start + 'px', end + 'px'] },
-        { duration: Math.min(900, 380 + Math.abs(end - start) / 8), easing: 'cubic-bezier(.22,.61,.36,1)' });
+        { duration: Math.min(2000, 850 + Math.abs(end - start) / 8), easing: 'cubic-bezier(.25,.1,.25,1)' });
+      if (open) extras().forEach((b, i) => b.animate(
+        { opacity: [0, 1], transform: ['translateY(12px)', 'translateY(0)'] },
+        { duration: 650, delay: Math.min(Math.floor(i / 3) * 70, 700), fill: 'backwards', easing: 'ease-out' }));
       gAnim.onfinish = () => {
         if (!open) extras().forEach((b) => b.classList.add('hidden'));
         grid.style.overflow = ''; gAnim = null;
@@ -677,7 +681,12 @@
       count.textContent = (cur + 1) + ' / ' + PHOTOS.length;
       preload(cur + 1); preload(cur - 1);
     }
-    function open(i) { show(i); lb.hidden = false; document.body.style.overflow = 'hidden'; }
+    function open(i) {
+      show(i); lb.hidden = false; document.body.style.overflow = 'hidden';
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      lb.animate({ opacity: [0, 1] }, { duration: reduce ? 180 : 350, easing: 'ease-out' });
+      if (!reduce) img.animate({ transform: ['scale(.97)', 'scale(1)'] }, { duration: 400, easing: 'ease-out' });
+    }
     function close() { lb.hidden = true; document.body.style.overflow = ''; }
     grid.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) open(+b.dataset.i); });
     lb.querySelector('.lb-prev').addEventListener('click', (e) => { e.stopPropagation(); show(cur - 1); });
