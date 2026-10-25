@@ -1,0 +1,23 @@
+footer .copyright .maple-secret-entry {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  margin: -10px -10px -10px 2px;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: 50%;
+}
+.maple-secret-entry span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background: url('maple-icon.png') center / contain no-repeat;
+  filter: grayscale(1) sepia(.65) hue-rotate(28deg) saturate(.7);
+}
+.maple-secret-entry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.maple-secret-entry:hover { color: var(--accent); }
