@@ -674,9 +674,9 @@
     });
   })();
 
-  // Gallery: 3-column thumbs (first 12, chevron reveals the rest) + full-screen viewer with swipe
+  // Numerically ordered portrait / landscape sliders and full-screen viewer
   (function () {
-    const GALLERIES = {"landscape": ["final-011", "final-018", "final-030", "final-032", "final-033", "final-034", "final-035", "final-036", "final-037"], "portrait": ["final-001", "final-002", "final-003", "final-004", "final-005", "final-006", "final-007", "final-008", "final-009", "final-010", "final-012", "final-013", "final-014", "final-015", "final-016", "final-017", "final-019", "final-020", "final-021", "final-022", "final-023", "final-024", "final-025", "final-026", "final-027", "final-028", "final-029", "final-031", "final-038", "final-039", "final-040", "final-041"]};
+    const GALLERIES = {"landscape": ["landscape-01", "landscape-02", "landscape-03", "landscape-04", "landscape-05", "landscape-06"], "portrait": ["portrait-01", "portrait-02", "portrait-03", "portrait-04", "portrait-05", "portrait-06", "portrait-07", "portrait-08", "portrait-09", "portrait-10", "portrait-11", "portrait-12", "portrait-13", "portrait-14", "portrait-15", "portrait-16", "portrait-17"]};
     let PHOTOS = [], groupLabel = '';
     for (const [kind, label] of [['portrait', '세로 사진'], ['landscape', '가로 사진']]) {
     const photos = GALLERIES[kind];
@@ -684,7 +684,7 @@
     const width = kind === 'landscape' ? 600 : 360, height = kind === 'landscape' ? 400 : 540;
     grid.innerHTML = photos.map((n, i) =>
       '<button type="button" data-i="' + i + '" aria-label="' + label + ' ' + (i + 1) + ' 크게 보기">' +
-      '<img src="img/gallery-final/t/' + n + '.webp" alt="" loading="lazy" decoding="async" width="' + width + '" height="' + height + '"></button>').join('');
+      '<img src="img/gallery-retouched/t/' + n + '.webp" alt="" loading="lazy" decoding="async" width="' + width + '" height="' + height + '"></button>').join('');
     const items = [...grid.querySelectorAll('button')];
     const prev = group.querySelector('[data-slide="prev"]'), next = group.querySelector('[data-slide="next"]'), position = group.querySelector('.gallery-position');
     let current = 0, frame = null;
@@ -745,10 +745,10 @@
 
     const lb = document.getElementById('lightbox'), img = lb.querySelector('.lb-img'), count = lb.querySelector('.lb-count');
     let cur = 0;
-    const preload = (i) => { const p = new Image(); p.src = 'img/gallery-final/f/' + PHOTOS[(i + PHOTOS.length) % PHOTOS.length] + '.webp'; };
+    const preload = (i) => { const p = new Image(); p.src = 'img/gallery-retouched/f/' + PHOTOS[(i + PHOTOS.length) % PHOTOS.length] + '.webp'; };
     function show(i) {
       cur = (i + PHOTOS.length) % PHOTOS.length;
-      img.src = 'img/gallery-final/f/' + PHOTOS[cur] + '.webp';
+      img.src = 'img/gallery-retouched/f/' + PHOTOS[cur] + '.webp';
       count.textContent = (cur + 1) + ' / ' + PHOTOS.length;
       img.alt = groupLabel + ' ' + (cur + 1);
       preload(cur + 1); preload(cur - 1);
